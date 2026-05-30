@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="Count You In">
+  <!-- table -->
+  <circle cx="48" cy="48" r="30" fill="none" stroke="#C5683D" stroke-width="6.5"/>
+  <!-- friends seated around -->
+  <g fill="#6B7050">
+    <circle cx="48" cy="9" r="4.6"/>
+    <circle cx="81" cy="29" r="4.6"/>
+    <circle cx="81" cy="67" r="4.6"/>
+    <circle cx="15" cy="29" r="4.6"/>
+    <circle cx="15" cy="67" r="4.6"/>
+  </g>
+  <!-- your seat -->
+  <circle cx="48" cy="87" r="5.4" fill="#C9A24B"/>
+  <!-- steaming bowl -->
+  <path d="M35 50 a13 13 0 0 0 26 0 Z" fill="#2A2622"/>
+  <g stroke="#2A2622" stroke-width="2.6" stroke-linecap="round" fill="none">
+    <path d="M43 44 q-3 -4 0 -8"/>
+    <path d="M53 44 q-3 -4 0 -8"/>
+  </g>
+</svg>
