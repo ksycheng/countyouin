@@ -10,6 +10,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient.js";
 import EventSplit from "./EventSplit.jsx";
 import ActivityFeed from "./ActivityFeed.jsx";
+import { sendCancellationEmail } from "./emailClient.js";
 
 const C = {
   paper: "#F4EDE0", card: "#FBF7EF", ink: "#2A2622",
@@ -197,8 +198,16 @@ export default function EventsScreen() {
 
     if (others.length > 0) {
       // people have joined → CANCEL (keep the row so they get notified)
-      if (!confirm(`Cancel "${events.find((e) => e.id === id)?.title}"? Everyone who joined will be notified that it's cancelled.`)) return;
+      const ev = events.find((e) => e.id === id);
+      if (!confirm(`Cancel "${ev?.title}"? Everyone who joined will be notified that it's cancelled.`)) return;
       await supabase.from("events").update({ cancelled: true, cancelled_at: new Date().toISOString() }).eq("id", id);
+      // email the guests (best-effort; won't block if email isn't set up)
+      try {
+        const { data: emails } = await supabase.rpc("event_guest_emails", { the_event_id: id });
+        (emails || []).forEach((row) => {
+          if (row.email) sendCancellationEmail(row.email, ev?.title || "your event", ev?.event_date || "");
+        });
+      } catch { /* email is optional */ }
       setEvents((e) => e.filter((x) => x.id !== id));
     } else {
       // nobody else joined → safe to delete outright

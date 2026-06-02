@@ -8,6 +8,7 @@
 // ============================================================
 import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient.js";
+import { sendWelcomeEmail } from "./emailClient.js";
 
 const C = {
   paper: "#F4EDE0", card: "#FBF7EF", ink: "#2A2622",
@@ -74,7 +75,10 @@ export default function AuthGate({ children }) {
     const fn = mode === "signup" ? "signUp" : "signInWithPassword";
     const { error } = await supabase.auth[fn]({ email, password });
     if (error) setMsg(error.message);
-    else if (mode === "signup") setMsg("Check — you can now sign in!");
+    else if (mode === "signup") {
+      setMsg("Check — you can now sign in!");
+      sendWelcomeEmail(email); // fire-and-forget; won't block if email isn't set up
+    }
   }
 
   async function signOut() { await supabase.auth.signOut(); }
