@@ -103,30 +103,32 @@ export default function FamilyScreen({ onNamed }) {
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "22px 20px 60px", fontFamily: "'Hanken Grotesk',sans-serif", color: C.ink }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Hanken+Grotesk:wght@400;500;700&display=swap');`}</style>
-      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 22, margin: "0 0 2px" }}>Your family</h2>
-      <p style={{ color: C.muted, fontSize: 13.5, margin: "0 0 16px" }}>
-        Everything here saves automatically. Add someone, refresh the page — they'll still be here.
+      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 30, margin: "0 0 2px" }}>Your family 🏡</h2>
+      <p style={{ color: C.muted, fontSize: 14, margin: "0 0 18px" }}>
+        Add everyone and their food needs — it all saves as you go.
       </p>
 
       {/* family name — shown in the cost split as "The <name> Family" */}
-      <div style={{ background: C.card, border: `1px solid ${familyName.trim() ? C.ink + "12" : C.terra + "55"}`, borderRadius: 14, padding: 16, marginBottom: 16 }}>
-        <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 5 }}>Family name *</div>
+      <div style={{ background: C.card, borderRadius: 18, padding: 18, marginBottom: 14,
+        boxShadow: familyName.trim() ? "0 2px 10px -6px rgba(80,50,20,0.18)" : "none",
+        border: familyName.trim() ? "none" : `2px solid ${C.terra}` }}>
+        <div style={{ fontSize: 12.5, color: C.muted, fontWeight: 700, marginBottom: 6 }}>Family name *</div>
         <input value={familyName} onChange={(e) => saveFamilyName(e.target.value)}
           placeholder="e.g. Cheng"
-          style={{ ...inp, borderColor: familyName.trim() ? C.ink + "26" : C.terra }} />
+          style={{ ...inp, borderRadius: 12 }} />
         {!familyName.trim() ? (
-          <p style={{ color: C.terra, fontSize: 12, fontWeight: 600, margin: "8px 0 0" }}>
+          <p style={{ color: C.terra, fontSize: 12.5, fontWeight: 700, margin: "8px 0 0" }}>
             Please enter your family name — it's how everyone is identified in the cost split.
           </p>
         ) : (
-          <p style={{ color: C.muted, fontSize: 11.5, margin: "8px 0 0" }}>
-            You'll appear as “The {familyName.trim()} Family” when splitting costs.
+          <p style={{ color: C.muted, fontSize: 12, margin: "8px 0 0" }}>
+            You'll appear as “The {familyName.trim()} Family” when splitting costs. 🎉
           </p>
         )}
       </div>
 
       {members.map((m) => (
-        <div key={m.id} style={{ background: C.card, border: `1px solid ${C.ink}12`, borderRadius: 14, padding: 16, marginBottom: 12 }}>
+        <div key={m.id} style={{ background: C.card, borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)" }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
             <input value={m.name} onChange={(e) => updateMember(m.id, "name", e.target.value)}
               placeholder="Name" style={{ ...inp, flex: 2 }} />
@@ -198,9 +200,9 @@ function ChipRow({ label, options, selected, onToggle, active }) {
           const on = selected.includes(o);
           return (
             <span key={o} onClick={() => onToggle(o)}
-              style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: "5px 11px", borderRadius: 999,
-                textTransform: "capitalize", color: on ? "#fff" : C.ink, background: on ? active : "transparent",
-                border: `1px solid ${on ? active : C.ink + "26"}` }}>
+              style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: "6px 12px", borderRadius: 999,
+                textTransform: "capitalize", color: on ? "#fff" : C.ink, background: on ? active : "#FFF8EF",
+                border: on ? `1px solid ${active}` : `1px solid #F0E2CE` }}>
               {o}
             </span>
           );
@@ -211,10 +213,10 @@ function ChipRow({ label, options, selected, onToggle, active }) {
 }
 
 const inp = {
-  width: "100%", padding: "9px 11px", borderRadius: 10, border: `1px solid ${C.ink}26`,
+  width: "100%", padding: "11px 13px", borderRadius: 12, border: `1px solid #F0E2CE`,
   background: "#fff", fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box",
 };
 const btn = {
-  display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10,
-  border: `1px solid ${C.ink}26`, background: "transparent", color: C.ink, fontSize: 13.5, cursor: "pointer", whiteSpace: "nowrap",
+  display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 16px", borderRadius: 12,
+  border: "none", background: C.terra, color: "#fff", fontSize: 13.5, cursor: "pointer", whiteSpace: "nowrap",
 };
