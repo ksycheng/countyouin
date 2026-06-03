@@ -243,7 +243,7 @@ export default function EventsScreen() {
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "22px 20px 60px", fontFamily: "'Hanken Grotesk',sans-serif", color: C.ink }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Hanken+Grotesk:wght@400;500;700&display=swap');`}</style>
-      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 22, margin: "0 0 2px" }}>Your events</h2>
+      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 30, margin: "0 0 2px" }}>Your events 🎉</h2>
       <p style={{ color: C.muted, fontSize: 13.5, margin: "0 0 18px" }}>
         Create a potluck and it saves automatically. Click one to open it.
       </p>
@@ -255,17 +255,19 @@ export default function EventsScreen() {
         </p>
       )}
       {events.map((ev) => (
-        <div key={ev.id} style={{ background: C.card, border: `1px solid ${openId === ev.id ? C.terra : C.ink + "12"}`, borderRadius: 14, padding: 16, marginBottom: 12 }}>
+        <div key={ev.id} style={{ background: C.card, borderRadius: 18, padding: 18, marginBottom: 12,
+          boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)",
+          outline: openId === ev.id ? `2px solid ${C.terra}` : "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setOpenId(openId === ev.id ? null : ev.id)}>
-              <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 17 }}>{ev.title}</div>
+              <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 19 }}>{ev.title}</div>
               <div style={{ color: C.muted, fontSize: 12.5 }}>
                 {ev.event_date || "no date yet"}{fmtTimeRange(ev.start_time, ev.end_time)}{ev.location ? ` · ${ev.location}` : ""}
                 {" · "}{ev.payment_mode === "host" ? "host pays" : "split the cost"}
               </div>
             </div>
-            <button onClick={() => deleteEvent(ev.id)} title="Delete event"
-              style={{ ...btn, padding: "6px 10px", color: C.warn, borderColor: `${C.warn}40` }}>✕</button>
+            <button onClick={() => deleteEvent(ev.id)} title="Delete or cancel event"
+              style={{ border: "none", background: `${C.warn}15`, color: C.warn, borderRadius: 10, padding: "8px 12px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>✕</button>
           </div>
           {openId === ev.id && (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px dashed ${C.ink}14` }}>
@@ -677,10 +679,10 @@ function Field({ label, children }) {
 }
 
 const inp = {
-  width: "100%", padding: "9px 11px", borderRadius: 10, border: `1px solid ${C.ink}26`,
+  width: "100%", padding: "11px 13px", borderRadius: 12, border: `1px solid #F0E2CE`,
   background: "#fff", fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box",
 };
 const btn = {
-  display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10,
-  border: `1px solid ${C.ink}26`, background: "transparent", color: C.ink, fontSize: 13.5, cursor: "pointer", whiteSpace: "nowrap",
+  display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 15px", borderRadius: 12,
+  border: `1px solid #F0E2CE`, background: "#FFF8EF", color: C.ink, fontSize: 13.5, cursor: "pointer", whiteSpace: "nowrap",
 };

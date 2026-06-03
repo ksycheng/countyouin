@@ -107,7 +107,7 @@ export default function GuestEventView({ event, household, members, onBack }) {
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "8px 0 40px" }}>
       <button onClick={onBack} style={{ ...btn, marginBottom: 14 }}>← Back to invites</button>
 
-      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 22, margin: "0 0 2px" }}>{event.title}</h2>
+      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 28, margin: "0 0 2px" }}>{event.title}</h2>
       <p style={{ color: C.muted, fontSize: 13.5, margin: "0 0 16px" }}>
         {event.event_date}{event.location ? ` · ${event.location}` : ""}
         {" · "}{event.payment_mode === "host" ? "host is covering it" : "split the cost"}

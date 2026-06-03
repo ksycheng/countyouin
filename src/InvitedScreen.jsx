@@ -64,7 +64,7 @@ export default function InvitedScreen() {
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "22px 20px 60px", fontFamily: "'Hanken Grotesk',sans-serif", color: C.ink }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Hanken+Grotesk:wght@400;500;700&display=swap');`}</style>
-      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 22, margin: "0 0 2px" }}>You're invited</h2>
+      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 28, margin: "0 0 2px" }}>You're invited</h2>
       <p style={{ color: C.muted, fontSize: 13.5, margin: "0 0 18px" }}>
         Events friends have invited you to. Open one to RSVP and see the details.
       </p>
@@ -75,7 +75,7 @@ export default function InvitedScreen() {
       )}
       {events.map((ev) => (
         <div key={ev.id} onClick={() => setOpenEvent(ev)}
-          style={{ background: C.card, border: `1px solid ${C.ink}12`, borderRadius: 14, padding: 16, marginBottom: 12, cursor: "pointer" }}>
+          style={{ background: C.card, borderRadius: 18, boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)", padding: 16, marginBottom: 12, cursor: "pointer" }}>
           <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 17 }}>{ev.title}</div>
           <div style={{ color: C.muted, fontSize: 12.5 }}>
             {ev.event_date || "no date yet"}{ev.location ? ` · ${ev.location}` : ""}

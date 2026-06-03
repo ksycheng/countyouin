@@ -136,7 +136,7 @@ export default function FamilyScreen({ onNamed }) {
               type="number" min="0" placeholder="Age (optional)" style={{ ...inp, flex: 1, minWidth: 90 }} />
             {members.length > 1 && (
               <button onClick={() => removeMember(m.id)} title="Remove"
-                style={{ ...btn, padding: "0 12px", color: C.warn, borderColor: `${C.warn}40` }}>✕</button>
+                style={{ ...btn, padding: "0 14px", color: "#fff", fontSize: 16, fontWeight: 700 }}>✕</button>
             )}
           </div>
           <ChipRow label="Allergies" options={ALLERGENS} selected={m.allergies || []}

@@ -43,7 +43,7 @@ export default function FriendsScreen() {
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "22px 20px 60px", fontFamily: "'Hanken Grotesk',sans-serif", color: C.ink }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Hanken+Grotesk:wght@400;500;700&display=swap');`}</style>
-      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 22, margin: "0 0 2px" }}>Friends</h2>
+      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 28, margin: "0 0 2px" }}>Friends</h2>
       <p style={{ color: C.muted, fontSize: 13.5, margin: "0 0 18px" }}>
         Families you've shared an event with. Add them as friends so they're easy to invite again.
       </p>
@@ -83,7 +83,7 @@ export default function FriendsScreen() {
 
 function Row({ p, onAdd, onRemove, isFriend, C }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.ink}12`, borderRadius: 14, padding: "12px 16px", marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}>
+    <div style={{ background: C.card, borderRadius: 18, boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)", padding: "12px 16px", marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}>
       <div style={{ width: 36, height: 36, borderRadius: "50%", background: isFriend ? C.sage : C.terra, color: "#fff",
         display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontFamily: "'Fraunces',serif" }}>
         {(p.family_name || "?")[0]}
