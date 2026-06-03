@@ -10,8 +10,8 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient.js";
 
 const C = {
-  paper: "#F4EDE0", card: "#FBF7EF", ink: "#2A2622",
-  terra: "#C5683D", sage: "#6B7050", gold: "#C9A24B", muted: "#8A7F6F", warn: "#B23A2E",
+  paper: "#FFF3E0", card: "#FFFFFF", ink: "#2A2622",
+  terra: "#FF8A4C", sage: "#2B8C6A", gold: "#E8A93C", muted: "#9A8574", warn: "#D9534F",
 };
 
 // read ?join=CODE from the URL

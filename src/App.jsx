@@ -16,8 +16,8 @@ import FriendsScreen from "./FriendsScreen.jsx";
 import HelpScreen from "./HelpScreen.jsx";
 
 const C = {
-  paper: "#F4EDE0", card: "#FBF7EF", ink: "#2A2622",
-  terra: "#C5683D", sage: "#6B7050", gold: "#C9A24B", muted: "#8A7F6F",
+  paper: "#FFF3E0", card: "#FFFFFF", ink: "#2A2622",
+  terra: "#FF8A4C", sage: "#2B8C6A", gold: "#E8A93C", muted: "#9A8574",
 };
 
 function Logo({ size = 34 }) {
@@ -107,7 +107,7 @@ export default function App() {
       )}
 
       {/* header */}
-      <div style={{ borderBottom: `1px solid ${C.ink}1a`, background: C.paper, position: "sticky", top: 0, zIndex: 10 }}>
+      <div style={{ borderBottom: `1px solid ${C.gold}33`, background: C.paper, position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ maxWidth: 640, margin: "0 auto", padding: "16px 20px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
             <Logo />
@@ -125,7 +125,7 @@ export default function App() {
               Sign out
             </button>
           </div>
-          <div style={{ display: "flex", gap: 4, marginTop: 12 }}>
+          <div style={{ display: "flex", gap: 6, marginTop: 14, flexWrap: "wrap" }}>
             {tabs.map((t) => {
               const active = tab === t.id;
               const locked = !familyNamed && t.id !== "family";
@@ -133,9 +133,10 @@ export default function App() {
                 <button key={t.id} onClick={() => { if (!locked) setTab(t.id); }}
                   disabled={locked}
                   title={locked ? "Name your family first" : ""}
-                  style={{ border: "none", background: "transparent", cursor: locked ? "not-allowed" : "pointer", padding: "8px 14px 12px",
-                    color: locked ? C.muted + "88" : (active ? C.ink : C.muted), borderBottom: active ? `2px solid ${C.terra}` : "2px solid transparent",
-                    fontWeight: active ? 700 : 500, fontSize: 14.5 }}>
+                  style={{ border: "none", cursor: locked ? "not-allowed" : "pointer", padding: "8px 16px", borderRadius: 999,
+                    background: active ? C.terra : "transparent",
+                    color: locked ? C.muted + "88" : (active ? "#fff" : C.muted),
+                    fontWeight: active ? 700 : 600, fontSize: 14 }}>
                   {t.label}{locked ? " 🔒" : ""}
                 </button>
               );
