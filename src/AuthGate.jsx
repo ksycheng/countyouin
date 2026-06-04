@@ -50,6 +50,7 @@ export default function AuthGate({ children }) {
   const [mode, setMode] = useState("signin"); // "signin" | "signup"
   const [msg, setMsg] = useState("");
   const lastMethod = getLastMethod();
+  const [showOther, setShowOther] = useState(false); // deliberately switching methods
 
   // check if someone is already logged in, and listen for changes
   useEffect(() => {
@@ -104,17 +105,58 @@ export default function AuthGate({ children }) {
         </h1>
         <p style={{ color: C.muted, fontSize: 14, margin: "0 0 16px" }}>Plan the potluck. Split it fairly.</p>
 
-        {/* gentle guidance: pick one method and stick with it */}
-        {lastMethod ? (
-          <div style={{ background: `${C.gold}14`, border: `1px solid ${C.gold}44`, borderRadius: 10,
-            padding: "9px 12px", fontSize: 12.5, color: C.ink, marginBottom: 18, lineHeight: 1.45 }}>
-            👋 Welcome back! Last time you signed in with <b>{lastMethod === "google" ? "Google" : "email & password"}</b>.
-            Use the same way to find your family and events.
+        {/* FIRST-TIME user: explain the one-method rule up front */}
+        {!lastMethod && (
+          <div style={{ background: `${C.sage}12`, border: `1px solid ${C.sage}33`, borderRadius: 12,
+            padding: "11px 13px", fontSize: 12.5, color: C.ink, marginBottom: 18, lineHeight: 1.5 }}>
+            <b>One quick tip:</b> choose <i>one</i> way to sign in — Google <i>or</i> email — and always use the same one. They create separate accounts, so switching later would start you fresh. 🙂
           </div>
-        ) : (
-          <div style={{ background: `${C.sage}12`, border: `1px solid ${C.sage}33`, borderRadius: 10,
-            padding: "9px 12px", fontSize: 12.5, color: C.ink, marginBottom: 18, lineHeight: 1.45 }}>
-            Tip: pick one way to sign in — Google <i>or</i> email — and use it every time. They're treated as separate accounts, so sticking to one keeps your family and events together.
+        )}
+
+        {/* RETURNING user: show ONLY the method they used last, prominently.
+            The other method hides behind a deliberate "different way" link. */}
+        {lastMethod && !showOther && (
+          <>
+            <div style={{ background: `${C.gold}1c`, border: `1px solid ${C.gold}55`, borderRadius: 12,
+              padding: "11px 13px", fontSize: 13, color: C.ink, marginBottom: 16, lineHeight: 1.5 }}>
+              👋 <b>Welcome back!</b> You signed in last with <b>{lastMethod === "google" ? "Google" : "email & password"}</b>. Use that again to find your family and events.
+            </div>
+
+            {lastMethod === "google" ? (
+              <button onClick={signInGoogle}
+                style={{ width: "100%", padding: "13px", borderRadius: 12, border: `2px solid ${C.terra}`,
+                  background: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                Continue with Google
+              </button>
+            ) : (
+              <>
+                <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" style={inp} />
+                <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password"
+                  style={{ ...inp, marginTop: 10 }} onKeyDown={(e) => e.key === "Enter" && handleEmail()} />
+                <button onClick={handleEmail}
+                  style={{ width: "100%", padding: "13px", borderRadius: 12, border: "none",
+                    background: C.terra, color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 12 }}>
+                  {mode === "signup" ? "Create account" : "Sign in"}
+                </button>
+              </>
+            )}
+
+            <button onClick={() => setShowOther(true)}
+              style={{ background: "transparent", border: "none", color: C.muted, fontSize: 12.5,
+                cursor: "pointer", marginTop: 16, textDecoration: "underline" }}>
+              Use a different sign-in method
+            </button>
+          </>
+        )}
+
+        {/* The full both-methods view: first-timers, OR a returning user who
+            chose "different method" (with a clear warning). */}
+        {(!lastMethod || showOther) && (
+        <>
+        {showOther && (
+          <div style={{ background: `${C.warn}12`, border: `1px solid ${C.warn}44`, borderRadius: 12,
+            padding: "11px 13px", fontSize: 12.5, color: C.ink, marginBottom: 16, lineHeight: 1.5 }}>
+            ⚠️ Heads up — signing in a <i>different</i> way than before creates a <b>separate account</b>, so your existing family and events won't be there. Only do this if you mean to.
           </div>
         )}
 
@@ -122,7 +164,7 @@ export default function AuthGate({ children }) {
           style={{ width: "100%", padding: "11px", borderRadius: 12,
             border: lastMethod === "google" ? `2px solid ${C.terra}` : `1px solid ${C.ink}22`,
             background: "#fff", fontWeight: 700, fontSize: 14.5, cursor: "pointer", marginBottom: 16 }}>
-          Continue with Google{lastMethod === "google" ? "  ✓" : ""}
+          Continue with Google{lastMethod === "google" ? "  ✓ (your usual)" : ""}
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, color: C.muted, fontSize: 12, margin: "4px 0 16px" }}>
@@ -138,14 +180,18 @@ export default function AuthGate({ children }) {
           style={{ width: "100%", padding: "11px", borderRadius: 12,
             border: lastMethod === "email" ? `2px solid ${C.ink}` : "none",
             background: C.terra, color: "#fff", fontWeight: 700, fontSize: 14.5, cursor: "pointer", marginTop: 14 }}>
-          {mode === "signup" ? "Create account" : "Sign in"}{lastMethod === "email" ? "  ✓" : ""}
+          {mode === "signup" ? "Create account" : "Sign in"}{lastMethod === "email" ? "  ✓ (your usual)" : ""}
         </button>
+        </>
+        )}
 
-        <button onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setMsg(""); }}
-          style={{ background: "transparent", border: "none", color: C.sage, fontWeight: 700, fontSize: 13,
-            cursor: "pointer", marginTop: 14 }}>
-          {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
-        </button>
+        {(!lastMethod || showOther || lastMethod === "email") && (
+          <button onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setMsg(""); }}
+            style={{ background: "transparent", border: "none", color: C.sage, fontWeight: 700, fontSize: 13,
+              cursor: "pointer", marginTop: 14 }}>
+            {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
+          </button>
+        )}
 
         {msg && <p style={{ color: C.terra, fontSize: 13, marginTop: 14 }}>{msg}</p>}
       </div>
