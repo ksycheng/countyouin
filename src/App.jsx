@@ -42,6 +42,7 @@ export default function App() {
   const [familyNamed, setFamilyNamed] = useState(true); // assume ok until checked
   const [checked, setChecked] = useState(false);
   const [cancelled, setCancelled] = useState([]); // cancelled events to notify about
+  const [removals, setRemovals] = useState([]); // events I was removed from
   const [showHelp, setShowHelp] = useState(false);
 
   // check whether this user's family has a real name yet
@@ -52,10 +53,16 @@ export default function App() {
   async function checkCancelled() {
     const { data } = await supabase.rpc("my_cancelled_events");
     setCancelled(data || []);
+    const { data: rem } = await supabase.rpc("my_removal_notices");
+    setRemovals(rem || []);
   }
   async function dismissCancel(eventId) {
     await supabase.rpc("dismiss_cancel", { the_event_id: eventId });
     setCancelled((c) => c.filter((x) => x.event_id !== eventId));
+  }
+  async function dismissRemoval(eventId) {
+    await supabase.rpc("dismiss_removal", { the_event_id: eventId });
+    setRemovals((c) => c.filter((x) => x.event_id !== eventId));
   }
   async function checkName() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -106,7 +113,26 @@ export default function App() {
         </div>
       )}
 
-      {/* header */}
+      {/* removed-from-event pop-up */}
+      {removals.length > 0 && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(42,38,34,.45)", zIndex: 100,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: C.card, borderRadius: 18, padding: 28, maxWidth: 380, width: "100%", textAlign: "center",
+            boxShadow: "0 20px 50px -20px rgba(0,0,0,.5)" }}>
+            <div style={{ fontSize: 36 }}>📭</div>
+            <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 22, margin: "8px 0 6px" }}>You've been removed</h2>
+            <p style={{ color: C.muted, fontSize: 14, margin: "0 0 4px", lineHeight: 1.5 }}>
+              The host has removed your family from <b style={{ color: C.ink }}>{removals[0].event_title}</b>.
+            </p>
+            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 20px" }}>If you think this was a mistake, reach out to the host directly.</p>
+            <button onClick={() => dismissRemoval(removals[0].event_id)}
+              style={{ padding: "11px 22px", borderRadius: 12, border: "none", background: C.terra, color: "#fff",
+                fontWeight: 700, fontSize: 14.5, cursor: "pointer" }}>
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
       <div style={{ borderBottom: `1px solid ${C.gold}33`, background: C.paper, position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ maxWidth: 640, margin: "0 auto", padding: "16px 20px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 11 }}>

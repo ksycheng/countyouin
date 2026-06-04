@@ -30,7 +30,8 @@ export default function FriendsScreen() {
     setMet((m) => m.map((p) => p.household_id === id ? { ...p, already_friend: true } : p));
     await supabase.rpc("add_friend", { the_friend: id });
   }
-  async function removeFriend(id) {
+  async function removeFriend(id, name) {
+    if (!confirm(`Remove The ${name} Family from your friends?`)) return;
     setMet((m) => m.map((p) => p.household_id === id ? { ...p, already_friend: false } : p));
     await supabase.rpc("remove_friend", { the_friend: id });
   }
@@ -61,7 +62,7 @@ export default function FriendsScreen() {
             Your friends
           </div>
           {friends.map((p) => (
-            <Row key={p.household_id} p={p} onRemove={() => removeFriend(p.household_id)} C={C} isFriend />
+            <Row key={p.household_id} p={p} onRemove={() => removeFriend(p.household_id, p.family_name)} C={C} isFriend />
           ))}
         </>
       )}
@@ -90,8 +91,8 @@ function Row({ p, onAdd, onRemove, isFriend, C }) {
       </div>
       <div style={{ flex: 1, fontWeight: 700 }}>The {p.family_name} Family</div>
       {isFriend ? (
-        <button onClick={onRemove}
-          style={{ ...btn(C), color: C.muted }}>♥ Friend</button>
+        <button onClick={onRemove} title="Tap to unfriend"
+          style={{ ...btn(C), color: C.sage, border: `1px solid ${C.sage}55`, background: `${C.sage}10` }}>♥ Friends · remove</button>
       ) : (
         <button onClick={onAdd}
           style={{ ...btn(C), background: C.sage, color: "#fff", border: `1px solid ${C.sage}` }}>+ Add friend</button>

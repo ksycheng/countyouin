@@ -61,6 +61,15 @@ export default function EventSplit({ event, refreshKey }) {
     await supabase.rpc("add_friend", { the_friend: hid });
   }
 
+  // am I the host of this event? (only the host can remove guests)
+  const iAmHost = rows && myHid && rows.some((r) => r.household_id === myHid && r.is_host);
+
+  async function removeGuest(hid, label) {
+    if (!confirm(`Remove ${label} from this event? Their RSVP and dishes will be deleted, and they'll be notified.`)) return;
+    await supabase.rpc("remove_guest", { the_event_id: event.id, the_household_id: hid });
+    load(); // refresh the split
+  }
+
   if (loading) return <div style={{ color: C.muted, fontSize: 13, marginTop: 14 }}>Calculating the split…</div>;
   if (!rows) return null;
 
@@ -118,6 +127,11 @@ export default function EventSplit({ event, refreshKey }) {
                 : <button onClick={() => addFriend(r.household_id)}
                     style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, background: "transparent",
                       border: `1px solid ${C.sage}66`, borderRadius: 999, padding: "3px 9px", cursor: "pointer" }}>+ Friend</button>)}
+              {iAmHost && !isMe && (
+                <button onClick={() => removeGuest(r.household_id, r.label)} title="Remove from event"
+                  style={{ fontSize: 11.5, fontWeight: 700, color: C.warn, background: "transparent",
+                    border: `1px solid ${C.warn}55`, borderRadius: 999, padding: "3px 9px", cursor: "pointer" }}>Remove</button>
+              )}
             </div>
           );
         })}
@@ -177,6 +191,13 @@ export default function EventSplit({ event, refreshKey }) {
                   + Friend
                 </button>
               )
+            )}
+            {iAmHost && !isMe && (
+              <button onClick={() => removeGuest(r.household_id, r.label)} title="Remove from event"
+                style={{ fontSize: 11.5, fontWeight: 700, color: C.warn, background: "transparent",
+                  border: `1px solid ${C.warn}55`, borderRadius: 999, padding: "3px 9px", cursor: "pointer" }}>
+                Remove
+              </button>
             )}
             <div style={{ textAlign: "right", fontWeight: 800, minWidth: 90 }}>
               {owes > 0.005 ? <span style={{ color: C.warn }}>owes ${owes.toFixed(2)}</span>
