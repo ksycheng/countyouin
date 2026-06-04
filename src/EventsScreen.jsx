@@ -12,6 +12,7 @@ import EventSplit from "./EventSplit.jsx";
 import ActivityFeed from "./ActivityFeed.jsx";
 import { sendCancellationEmail } from "./emailClient.js";
 import { uploadPhoto } from "./photoUpload.js";
+import DishSuggestions from "./DishSuggestions.jsx";
 
 const C = {
   paper: "#FFF3E0", card: "#FFFFFF", ink: "#2A2622",
@@ -334,6 +335,7 @@ export default function EventsScreen() {
                     onDelete={(dishId) => deleteDish(ev.id, dishId)}
                   />
                 )}
+                {dishesUnlocked(ev) && <DishSuggestions eventId={ev.id} />}
               </div>
 
               {/* ---- COST SPLIT ---- */}

@@ -143,9 +143,14 @@ export default function FamilyScreen({ onNamed }) {
           </div>
           <ChipRow label="Allergies" options={ALLERGENS} selected={m.allergies || []}
             onToggle={(v) => toggleInList(m, "allergies", v)} active={C.warn} />
-          <CustomAllergies member={m} onToggle={(v) => toggleInList(m, "allergies", v)} C={C} />
+          <CustomChips member={m} field="allergies" preset={ALLERGENS} color={C.warn}
+            placeholder="Other allergy not listed? e.g. mustard, kiwi…"
+            onToggle={(v) => toggleInList(m, "allergies", v)} C={C} />
           <ChipRow label="Diet" options={DIETS} selected={m.diets || []}
             onToggle={(v) => toggleInList(m, "diets", v)} active={C.sage} />
+          <CustomChips member={m} field="diets" preset={DIETS} color={C.sage}
+            placeholder="Other dietary preference? e.g. keto, low-sodium…"
+            onToggle={(v) => toggleInList(m, "diets", v)} C={C} />
         </div>
       ))}
 
@@ -160,15 +165,14 @@ export default function FamilyScreen({ onNamed }) {
   );
 }
 
-function CustomAllergies({ member, onToggle, C }) {
+function CustomChips({ member, field, preset, placeholder, color, onToggle, C }) {
   const [text, setText] = useState("");
-  // custom = allergies the member has that aren't in the preset list
-  const custom = (member.allergies || []).filter((a) => !ALLERGENS.includes(a));
+  const custom = (member[field] || []).filter((a) => !preset.includes(a));
   function add() {
     const v = text.trim().toLowerCase();
     setText("");
-    if (!v || (member.allergies || []).includes(v)) return;
-    onToggle(v); // adds it (toggleInList adds since it's not present)
+    if (!v || (member[field] || []).includes(v)) return;
+    onToggle(v);
   }
   return (
     <div style={{ marginBottom: 8 }}>
@@ -177,7 +181,7 @@ function CustomAllergies({ member, onToggle, C }) {
           {custom.map((a) => (
             <span key={a} onClick={() => onToggle(a)} title="remove"
               style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, fontWeight: 600,
-                padding: "5px 9px 5px 11px", borderRadius: 999, color: "#fff", background: C.warn, textTransform: "capitalize" }}>
+                padding: "5px 9px 5px 11px", borderRadius: 999, color: "#fff", background: color, textTransform: "capitalize" }}>
               {a} ✕
             </span>
           ))}
@@ -185,7 +189,7 @@ function CustomAllergies({ member, onToggle, C }) {
       )}
       <div style={{ display: "flex", gap: 8 }}>
         <input value={text} onChange={(e) => setText(e.target.value)}
-          placeholder="Other allergy not listed? e.g. mustard, kiwi…"
+          placeholder={placeholder}
           style={{ ...inp, fontSize: 13 }} onKeyDown={(e) => e.key === "Enter" && add()} />
         <button onClick={add} style={{ ...btn, fontWeight: 700 }}>Add</button>
       </div>

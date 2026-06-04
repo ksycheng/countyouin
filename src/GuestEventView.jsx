@@ -9,6 +9,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient.js";
 import { DishList, scanAllergens } from "./EventsScreen.jsx";
 import EventSplit from "./EventSplit.jsx";
+import DishSuggestions from "./DishSuggestions.jsx";
 import ActivityFeed from "./ActivityFeed.jsx";
 
 const C = {
@@ -163,6 +164,7 @@ export default function GuestEventView({ event, household, members, onBack }) {
             onDelete={deleteDish}
           />
         )}
+        {dishesUnlocked() && headCount > 0 && <DishSuggestions eventId={event.id} />}
       </div>
 
       {/* SPLIT */}
