@@ -278,6 +278,7 @@ export default function EventsScreen() {
                 setEvents((list) => list.map((x) => x.id === ev.id ? { ...x, photo_url: url } : x));
               }} />
               <InviteLink event={ev} />
+              <AttendeeDietSummary eventId={ev.id} open={openId === ev.id} />
               <div style={{ fontSize: 13.5, color: C.muted, marginBottom: 10 }}>
                 <b style={{ color: C.ink }}>RSVP deadline:</b> {ev.rsvp_deadline || "not set"}
               </div>
@@ -421,6 +422,74 @@ function fmt12(t) {
   const ampm = h >= 12 ? "PM" : "AM";
   h = h % 12; if (h === 0) h = 12;
   return `${h}:${m} ${ampm}`;
+}
+
+function AttendeeDietSummary({ eventId, open }) {
+  const [rows, setRows] = useState(null);
+  useEffect(() => { if (open) load(); }, [eventId, open]);
+  async function load() {
+    const { data } = await supabase.rpc("event_attendee_diets", { the_event_id: eventId });
+    setRows(data || []);
+  }
+  if (!open || rows === null) return null;
+
+  // gather everyone's allergies and diets
+  const allAllergies = [...new Set(rows.flatMap((r) => r.allergies || []))];
+  const allDiets = [...new Set(rows.flatMap((r) => r.diets || []))];
+  const withNeeds = rows.filter((r) => (r.allergies || []).length || (r.diets || []).length);
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 14, padding: 14, marginBottom: 12,
+      boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)", border: allAllergies.length ? `1.5px solid ${C.warn}44` : `1px solid ${C.line}` }}>
+      <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 16, marginBottom: 4 }}>
+        🍽️ Allergies & diets to plan around
+      </div>
+      {rows.length === 0 ? (
+        <p style={{ color: C.muted, fontSize: 13, margin: "4px 0 0" }}>No one's RSVP'd yet — this updates as guests reply.</p>
+      ) : withNeeds.length === 0 ? (
+        <p style={{ color: C.sage, fontSize: 13, margin: "4px 0 0", fontWeight: 600 }}>
+          ✅ No allergies or special diets reported by anyone coming.
+        </p>
+      ) : (
+        <>
+          {allAllergies.length > 0 && (
+            <div style={{ margin: "8px 0" }}>
+              <div style={{ fontSize: 11.5, color: C.warn, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 5 }}>⚠️ Allergies present</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {allAllergies.map((a) => (
+                  <span key={a} style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: C.warn,
+                    padding: "4px 11px", borderRadius: 999, textTransform: "capitalize" }}>{a}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {allDiets.length > 0 && (
+            <div style={{ margin: "8px 0" }}>
+              <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 5 }}>Diets</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {allDiets.map((d) => (
+                  <span key={d} style={{ fontSize: 12.5, fontWeight: 700, color: C.sage, background: `${C.sage}14`,
+                    padding: "4px 11px", borderRadius: 999, textTransform: "capitalize" }}>{d}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* who has what, for clarity */}
+          <div style={{ marginTop: 10, borderTop: `1px solid ${C.line}`, paddingTop: 8 }}>
+            {withNeeds.map((r, i) => (
+              <div key={i} style={{ fontSize: 12.5, color: C.ink, marginBottom: 4 }}>
+                <b>{r.member_name}</b> <span style={{ color: C.muted }}>({r.family_name})</span>:{" "}
+                {[...(r.allergies || []).map((a) => `⚠️ ${a}`), ...(r.diets || [])].join(", ")}
+              </div>
+            ))}
+          </div>
+          <p style={{ color: C.muted, fontSize: 11, marginTop: 8, lineHeight: 1.5 }}>
+            Shown for everyone attending so far. Always confirm directly with guests for severe allergies — this is a planning aid, not a guarantee.
+          </p>
+        </>
+      )}
+    </div>
+  );
 }
 
 function EventPhoto({ event, onPick }) {
