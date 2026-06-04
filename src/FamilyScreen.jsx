@@ -7,6 +7,7 @@
 // ============================================================
 import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient.js";
+import { uploadPhoto } from "./photoUpload.js";
 
 const C = {
   paper: "#FFF3E0", card: "#FFFFFF", ink: "#2A2622",
@@ -129,11 +130,12 @@ export default function FamilyScreen({ onNamed }) {
 
       {members.map((m) => (
         <div key={m.id} style={{ background: C.card, borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)" }}>
-          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+            <Avatar member={m} onPick={(url) => updateMember(m.id, "photo_url", url)} C={C} />
             <input value={m.name} onChange={(e) => updateMember(m.id, "name", e.target.value)}
               placeholder="Name" style={{ ...inp, flex: 2 }} />
             <input value={m.age ?? ""} onChange={(e) => updateMember(m.id, "age", e.target.value === "" ? null : Number(e.target.value))}
-              type="number" min="0" placeholder="Age (optional)" style={{ ...inp, flex: 1, minWidth: 90 }} />
+              type="number" min="0" placeholder="Age (optional)" style={{ ...inp, flex: 1, minWidth: 80 }} />
             {members.length > 1 && (
               <button onClick={() => removeMember(m.id)} title="Remove"
                 style={{ ...btn, padding: "0 14px", color: "#fff", fontSize: 16, fontWeight: 700 }}>✕</button>
@@ -188,6 +190,40 @@ function CustomAllergies({ member, onToggle, C }) {
         <button onClick={add} style={{ ...btn, fontWeight: 700 }}>Add</button>
       </div>
     </div>
+  );
+}
+
+function Avatar({ member, onPick, C }) {
+  const [busy, setBusy] = useState(false);
+  const inputRef = React.useRef();
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBusy(true);
+    const url = await uploadPhoto(file, "members", member.id);
+    setBusy(false);
+    if (url) onPick(url);
+  }
+
+  const initial = (member.name || "?").trim()[0]?.toUpperCase() || "?";
+  return (
+    <>
+      <div onClick={() => inputRef.current?.click()} title="Add a photo"
+        style={{ width: 46, height: 46, borderRadius: "50%", flexShrink: 0, cursor: "pointer",
+          background: member.photo_url ? `center/cover url(${member.photo_url})` : C.gold,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#fff", fontWeight: 800, fontFamily: "'Fraunces',serif", fontSize: 18,
+          border: `2px solid ${C.card}`, boxShadow: "0 0 0 1px #F0E2CE", position: "relative" }}>
+        {!member.photo_url && (busy ? "…" : initial)}
+        {!member.photo_url && !busy && (
+          <span style={{ position: "absolute", bottom: -2, right: -2, background: C.terra, color: "#fff",
+            borderRadius: "50%", width: 18, height: 18, fontSize: 12, display: "flex", alignItems: "center",
+            justifyContent: "center", border: `2px solid ${C.card}` }}>+</span>
+        )}
+      </div>
+      <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+    </>
   );
 }
 

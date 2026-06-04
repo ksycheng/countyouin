@@ -11,6 +11,7 @@ import { supabase } from "./supabaseClient.js";
 import EventSplit from "./EventSplit.jsx";
 import ActivityFeed from "./ActivityFeed.jsx";
 import { sendCancellationEmail } from "./emailClient.js";
+import { uploadPhoto } from "./photoUpload.js";
 
 const C = {
   paper: "#FFF3E0", card: "#FFFFFF", ink: "#2A2622",
@@ -271,6 +272,10 @@ export default function EventsScreen() {
           </div>
           {openId === ev.id && (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px dashed ${C.ink}14` }}>
+              <EventPhoto event={ev} onPick={async (url) => {
+                await supabase.from("events").update({ photo_url: url }).eq("id", ev.id);
+                setEvents((list) => list.map((x) => x.id === ev.id ? { ...x, photo_url: url } : x));
+              }} />
               <InviteLink event={ev} />
               <div style={{ fontSize: 13.5, color: C.muted, marginBottom: 10 }}>
                 <b style={{ color: C.ink }}>RSVP deadline:</b> {ev.rsvp_deadline || "not set"}
@@ -414,6 +419,32 @@ function fmt12(t) {
   const ampm = h >= 12 ? "PM" : "AM";
   h = h % 12; if (h === 0) h = 12;
   return `${h}:${m} ${ampm}`;
+}
+
+function EventPhoto({ event, onPick }) {
+  const [busy, setBusy] = useState(false);
+  const ref = React.useRef();
+  async function handle(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBusy(true);
+    const url = await uploadPhoto(file, "events", event.id);
+    setBusy(false);
+    if (url) onPick(url);
+  }
+  return (
+    <>
+      <div onClick={() => ref.current?.click()} title="Add an event photo"
+        style={{ height: event.photo_url ? 150 : 64, borderRadius: 14, marginBottom: 12, cursor: "pointer",
+          background: event.photo_url ? `center/cover url(${event.photo_url})` : "#FFF8EF",
+          border: event.photo_url ? "none" : `1px dashed #E8C9A0`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: C.muted, fontSize: 13, fontWeight: 600 }}>
+        {!event.photo_url && (busy ? "Uploading…" : "📷 Add a photo for this event")}
+      </div>
+      <input ref={ref} type="file" accept="image/*" onChange={handle} style={{ display: "none" }} />
+    </>
+  );
 }
 
 function InviteLink({ event }) {
