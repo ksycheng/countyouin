@@ -72,7 +72,7 @@ export default function DishSuggestions({ eventId }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {items.map((d) => (
             <div key={d.id} style={{ background: "#fff", borderRadius: 10, padding: "10px 12px", boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{d.name}</div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{d.name}{d.cuisine ? <span style={{ color: C.muted, fontWeight: 600, fontSize: 12 }}>  ·  {d.cuisine}</span> : null}</div>
               <div style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>{d.ingredients}</div>
               {d.diets && d.diets.length > 0 && (
                 <div style={{ marginTop: 5, display: "flex", gap: 5, flexWrap: "wrap" }}>

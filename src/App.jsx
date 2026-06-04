@@ -10,6 +10,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient.js";
 import FamilyScreen from "./FamilyScreen.jsx";
+import CalendarScreen from "./CalendarScreen.jsx";
 import EventsScreen from "./EventsScreen.jsx";
 import InvitedScreen from "./InvitedScreen.jsx";
 import FriendsScreen from "./FriendsScreen.jsx";
@@ -38,7 +39,7 @@ function Logo({ size = 34 }) {
 }
 
 export default function App() {
-  const [tab, setTab] = useState("family");
+  const [tab, setTab] = useState("calendar");
   const [familyNamed, setFamilyNamed] = useState(true); // assume ok until checked
   const [checked, setChecked] = useState(false);
   const [cancelled, setCancelled] = useState([]); // cancelled events to notify about
@@ -79,6 +80,7 @@ export default function App() {
   async function signOut() { await supabase.auth.signOut(); }
 
   const tabs = [
+    { id: "calendar", label: "Calendar" },
     { id: "family", label: "Family" },
     { id: "hosting", label: "Hosting" },
     { id: "invited", label: "Invited" },
@@ -173,6 +175,7 @@ export default function App() {
 
       {/* the active tab */}
       <div>
+        {tab === "calendar" && <CalendarScreen onGoTab={(t) => setTab(t)} />}
         {tab === "family" && <FamilyScreen onNamed={checkName} />}
         {tab === "hosting" && <EventsScreen />}
         {tab === "invited" && <InvitedScreen />}
