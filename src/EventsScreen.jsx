@@ -19,7 +19,7 @@ const C = {
   terra: "#FF8A4C", sage: "#2B8C6A", gold: "#E8A93C", muted: "#9A8574", warn: "#D9534F",
 };
 
-export default function EventsScreen() {
+export default function EventsScreen({ openEventId, onConsumeOpen }) {
   const [household, setHousehold] = useState(null);
   const [events, setEvents] = useState([]);
   const [members, setMembers] = useState([]);      // your family
@@ -40,6 +40,19 @@ export default function EventsScreen() {
   const [formError, setFormError] = useState("");
 
   useEffect(() => { load(); }, []);
+
+  // if the calendar asked us to open a specific event, do it once events are loaded
+  useEffect(() => {
+    if (openEventId && events.some((e) => e.id === openEventId)) {
+      setOpenId(openEventId);
+      onConsumeOpen && onConsumeOpen();
+      // scroll it into view shortly after render
+      setTimeout(() => {
+        const el = document.getElementById(`event-${openEventId}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [openEventId, events]);
 
   async function load() {
     setLoading(true);
@@ -257,7 +270,7 @@ export default function EventsScreen() {
         </p>
       )}
       {events.map((ev) => (
-        <div key={ev.id} style={{ background: C.card, borderRadius: 18, padding: 18, marginBottom: 12,
+        <div key={ev.id} id={`event-${ev.id}`} style={{ background: C.card, borderRadius: 18, padding: 18, marginBottom: 12,
           boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)",
           outline: openId === ev.id ? `2px solid ${C.terra}` : "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -283,12 +296,12 @@ export default function EventsScreen() {
                 <b style={{ color: C.ink }}>RSVP deadline:</b> {ev.rsvp_deadline || "not set"}
               </div>
               <div style={{ fontSize: 12, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 700, marginBottom: 8 }}>
-                Who's coming from your family?
+                Who's coming?
               </div>
               {pastDeadline(ev) && (
                 <div style={{ display: "flex", gap: 8, alignItems: "center", background: `${C.gold}1a`, border: `1px solid ${C.gold}55`,
-                  borderRadius: 10, padding: "8px 11px", marginBottom: 10, fontSize: 12.5, color: C.ink }}>
-                  📋 RSVPs were due {ev.rsvp_deadline}. The host is planning around the current headcount — but you can still update if your plans change.
+                  borderRadius: 10, padding: "8px 11px", marginBottom: 10, fontSize: 12, color: C.muted }}>
+                  📋 RSVPs were due {ev.rsvp_deadline} — you can still update anytime.
                 </div>
               )}
               {members.length === 0 && (
@@ -323,7 +336,7 @@ export default function EventsScreen() {
                 {!dishesUnlocked(ev) ? (
                   <div style={{ display: "flex", gap: 8, alignItems: "center", background: `${C.ink}08`, border: `1px solid ${C.ink}1a`,
                     borderRadius: 10, padding: "10px 12px", fontSize: 12.5, color: C.muted }}>
-                    🔒 The dish list opens after the RSVP deadline ({ev.rsvp_deadline}), once the headcount has settled.
+                    🔒 Dishes open after the RSVP deadline ({ev.rsvp_deadline}).
                   </div>
                 ) : (
                   <DishList
@@ -375,7 +388,7 @@ export default function EventsScreen() {
           <Field label="Starts *"><input type="time" value={form.start_time} onChange={(e) => setF("start_time", e.target.value)} style={inp} /></Field>
           <Field label="Ends *"><input type="time" value={form.end_time} onChange={(e) => setF("end_time", e.target.value)} style={inp} /></Field>
         </div>
-        <Field label="RSVP deadline * (on or before the event date)"><input type="date" value={form.rsvp_deadline} onChange={(e) => setF("rsvp_deadline", e.target.value)} style={inp} /></Field>
+        <Field label="RSVP deadline *"><input type="date" value={form.rsvp_deadline} onChange={(e) => setF("rsvp_deadline", e.target.value)} style={inp} /></Field>
         <Field label="Who pays? *">
           <div style={{ display: "flex", gap: 8 }}>
             {[["split", "Everyone splits"], ["host", "I'm covering it"]].map(([v, l]) => (
@@ -484,7 +497,7 @@ function AttendeeDietSummary({ eventId, open }) {
             ))}
           </div>
           <p style={{ color: C.muted, fontSize: 11, marginTop: 8, lineHeight: 1.5 }}>
-            Shown for everyone attending so far. Always confirm directly with guests for severe allergies — this is a planning aid, not a guarantee.
+            Updates as guests RSVP. For severe allergies, always confirm directly.
           </p>
         </>
       )}
