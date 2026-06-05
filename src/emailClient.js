@@ -34,7 +34,7 @@ function wrap(inner) {
     <div style="height:1px; background:#2A262218; margin: 8px 0 18px;"></div>
     ${inner}
     <div style="height:1px; background:#2A262218; margin: 22px 0 12px;"></div>
-    <div style="font-size: 12px; color: #8A7F6F;">Count You In · plan the potluck, split it fairly.</div>
+    <div style="font-size: 12px; color: #8A7F6F;">Count You In · less coordinating, more connecting.</div>
   </div>`;
 }
 

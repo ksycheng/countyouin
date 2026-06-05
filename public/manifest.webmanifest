@@ -1,7 +1,7 @@
 {
   "name": "Count You In",
   "short_name": "Count You In",
-  "description": "Plan the potluck. Split it fairly.",
+  "description": "Less coordinating, more connecting.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F4EDE0",

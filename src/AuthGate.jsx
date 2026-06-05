@@ -103,7 +103,7 @@ export default function AuthGate({ children }) {
         <h1 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 30, margin: "0 0 4px", letterSpacing: -0.5 }}>
           Count<span style={{ color: C.terra }}> You</span> In
         </h1>
-        <p style={{ color: C.muted, fontSize: 14, margin: "0 0 16px" }}>Plan the potluck. Split it fairly.</p>
+        <p style={{ color: C.muted, fontSize: 14, margin: "0 0 16px" }}>Less coordinating, more connecting.</p>
 
         {/* FIRST-TIME user: explain the one-method rule up front */}
         {!lastMethod && (
