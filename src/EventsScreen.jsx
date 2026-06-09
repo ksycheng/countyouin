@@ -25,6 +25,7 @@ export default function EventsScreen({ openEventId, onConsumeOpen }) {
   const [members, setMembers] = useState([]);      // your family
   const [rsvpMap, setRsvpMap] = useState({});       // { "eventId:memberId": rsvpRow }
   const [dishesByEvent, setDishesByEvent] = useState({}); // { eventId: [dish, ...] }
+  const [showPast, setShowPast] = useState(false);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [openId, setOpenId] = useState(null);
@@ -87,15 +88,14 @@ export default function EventsScreen({ openEventId, onConsumeOpen }) {
         setRsvpMap(map);
       }
 
-      // load dishes for all of this host's events
+      // load dishes (with family names) for all of this host's events
       const eventIds = (evs || []).map((e) => e.id);
       if (eventIds.length) {
-        const { data: ds } = await supabase
-          .from("dishes").select("*").in("event_id", eventIds);
         const byEvent = {};
-        (ds || []).forEach((d) => {
-          (byEvent[d.event_id] = byEvent[d.event_id] || []).push(d);
-        });
+        await Promise.all(eventIds.map(async (eid) => {
+          const { data: ds } = await supabase.rpc("event_dishes", { the_event_id: eid });
+          byEvent[eid] = ds || [];
+        }));
         setDishesByEvent(byEvent);
       }
     }
@@ -116,7 +116,7 @@ export default function EventsScreen({ openEventId, onConsumeOpen }) {
     const { data } = await supabase.from("dishes")
       .insert({ event_id: eventId, household_id: household.id, name: name.trim(), price: null, allergens })
       .select().single();
-    if (data) setDishesByEvent((b) => ({ ...b, [eventId]: [...(b[eventId] || []), data] }));
+    if (data) setDishesByEvent((b) => ({ ...b, [eventId]: [...(b[eventId] || []), { ...data, family_name: household.name }] }));
   }
 
   async function updateDishPrice(eventId, dishId, value) {
@@ -255,13 +255,15 @@ export default function EventsScreen({ openEventId, onConsumeOpen }) {
     return <div style={{ padding: 30, color: C.muted, fontFamily: "'Hanken Grotesk',sans-serif" }}>Loading your events…</div>;
   }
 
+  const _todayStr = new Date().toISOString().slice(0, 10);
+  const _isPast = (ev) => ev.event_date && ev.event_date < _todayStr;
+  const upcomingEvents = events.filter((ev) => !_isPast(ev));
+  const pastEvents = events.filter(_isPast);
+
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "22px 20px 60px", fontFamily: "'Hanken Grotesk',sans-serif", color: C.ink }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Hanken+Grotesk:wght@400;500;700&display=swap');`}</style>
-      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 30, margin: "0 0 2px" }}>Your events 🎉</h2>
-      <p style={{ color: C.muted, fontSize: 13.5, margin: "0 0 18px" }}>
-        Create a potluck and it saves automatically. Click one to open it.
-      </p>
+      <h2 style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 30, margin: "0 0 18px" }}>Your events 🎉</h2>
 
       {/* existing events */}
       {events.length === 0 && (
@@ -269,7 +271,7 @@ export default function EventsScreen({ openEventId, onConsumeOpen }) {
           No events yet — create your first one below.
         </p>
       )}
-      {events.map((ev) => (
+      {upcomingEvents.map((ev) => (
         <div key={ev.id} id={`event-${ev.id}`} style={{ background: C.card, borderRadius: 18, padding: 18, marginBottom: 12,
           boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)",
           outline: openId === ev.id ? `2px solid ${C.terra}` : "none" }}>
@@ -291,6 +293,7 @@ export default function EventsScreen({ openEventId, onConsumeOpen }) {
                 setEvents((list) => list.map((x) => x.id === ev.id ? { ...x, photo_url: url } : x));
               }} />
               <InviteLink event={ev} />
+              <InviteFriends eventId={ev.id} />
               <AttendeeDietSummary eventId={ev.id} open={openId === ev.id} />
               <div style={{ fontSize: 13.5, color: C.muted, marginBottom: 10 }}>
                 <b style={{ color: C.ink }}>RSVP deadline:</b> {ev.rsvp_deadline || "not set"}
@@ -364,7 +367,31 @@ export default function EventsScreen({ openEventId, onConsumeOpen }) {
         </div>
       ))}
 
-      {/* create new event — collapsed once you already have events */}
+      {/* Past events — collapsed, read-only summary */}
+      {pastEvents.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <button onClick={() => setShowPast((s) => !s)}
+            style={{ width: "100%", textAlign: "left", border: "none", background: "transparent", cursor: "pointer",
+              color: C.muted, fontWeight: 700, fontSize: 13.5, padding: "8px 2px", display: "flex", alignItems: "center", gap: 6 }}>
+            {showPast ? "▾" : "▸"} Past events ({pastEvents.length})
+          </button>
+          {showPast && pastEvents.map((ev) => (
+            <div key={ev.id} style={{ background: C.card, borderRadius: 14, padding: "12px 16px", marginBottom: 8,
+              boxShadow: "0 2px 10px -6px rgba(80,50,20,0.12)", opacity: 0.85 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14.5 }}>{ev.title}</div>
+                  <div style={{ color: C.muted, fontSize: 12.5 }}>
+                    {ev.event_date}{ev.location ? ` · ${ev.location}` : ""}
+                  </div>
+                </div>
+                <button onClick={() => deleteEvent(ev.id)} title="Delete event"
+                  style={{ border: "none", background: `${C.warn}12`, color: C.warn, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>✕</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {events.length > 0 && !showCreate ? (
         <button onClick={() => setShowCreate(true)}
           style={{ ...btn, marginTop: 8, fontWeight: 700, borderStyle: "dashed", width: "100%", justifyContent: "center" }}>
@@ -435,6 +462,63 @@ function fmt12(t) {
   const ampm = h >= 12 ? "PM" : "AM";
   h = h % 12; if (h === 0) h = 12;
   return `${h}:${m} ${ampm}`;
+}
+
+function InviteFriends({ eventId }) {
+  const [friends, setFriends] = useState([]);
+  const [invited, setInvited] = useState(new Set());
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    const { data: fr } = await supabase.rpc("my_friends");
+    const { data: inv } = await supabase.rpc("event_invited_households", { the_event_id: eventId });
+    setFriends(fr || []);
+    setInvited(new Set((inv || []).map((r) => r.household_id)));
+    setLoading(false);
+  }
+  function toggleOpen() { if (!open) load(); setOpen(!open); }
+
+  async function invite(hid) {
+    setInvited((s) => new Set(s).add(hid)); // optimistic
+    await supabase.rpc("invite_friend", { the_event_id: eventId, the_friend: hid });
+  }
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button onClick={toggleOpen}
+        style={{ width: "100%", padding: "10px", borderRadius: 12, border: `1px solid ${C.line}`,
+          background: "#FFF8EF", color: C.ink, fontWeight: 700, fontSize: 13.5, cursor: "pointer" }}>
+        👋 Invite from your friends
+      </button>
+      {open && (
+        <div style={{ marginTop: 8, background: "#fff", borderRadius: 12, padding: 12, boxShadow: "0 2px 10px -6px rgba(80,50,20,0.18)" }}>
+          {loading ? (
+            <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>Loading…</p>
+          ) : friends.length === 0 ? (
+            <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>No friends yet. People you've shared events with show up in your Friends tab.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {friends.map((f) => {
+                const done = invited.has(f.friend_household_id);
+                return (
+                  <div key={f.friend_household_id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>The {f.friend_name} Family</span>
+                    <button onClick={() => !done && invite(f.friend_household_id)} disabled={done}
+                      style={{ border: "none", cursor: done ? "default" : "pointer", padding: "6px 13px", borderRadius: 999,
+                        fontSize: 12.5, fontWeight: 700, background: done ? `${C.sage}18` : C.terra, color: done ? C.sage : "#fff" }}>
+                      {done ? "✓ Invited" : "+ Invite"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function AttendeeDietSummary({ eventId, open }) {
@@ -719,7 +803,9 @@ export function DishList({ dishes, myHouseholdId, attendees = [], showPrices = t
           <div key={d.id} style={{ background: "#fff", border: `1px solid ${C.ink}14`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontWeight: 700, fontSize: 14 }}>{d.name}</span>
-              {mine && <span style={{ fontSize: 11, fontWeight: 700, color: C.terra, background: `${C.terra}1a`, padding: "2px 7px", borderRadius: 999 }}>you</span>}
+              {mine
+                ? <span style={{ fontSize: 11, fontWeight: 700, color: C.terra, background: `${C.terra}1a`, padding: "2px 7px", borderRadius: 999 }}>you</span>
+                : d.family_name && <span style={{ fontSize: 11.5, fontWeight: 600, color: C.muted }}>· The {d.family_name} Family</span>}
               <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
                 {mine ? (
                   <>

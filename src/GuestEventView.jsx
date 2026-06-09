@@ -38,7 +38,7 @@ export default function GuestEventView({ event, household, members, onBack }) {
       setRsvpMap(map);
     }
     // all dishes for this event (guests can read them now)
-    const { data: ds } = await supabase.from("dishes").select("*").eq("event_id", event.id);
+    const { data: ds } = await supabase.rpc("event_dishes", { the_event_id: event.id });
     setDishes(ds || []);
 
     // attending allergy profiles — from MY family (others' allergy data
@@ -83,7 +83,7 @@ export default function GuestEventView({ event, household, members, onBack }) {
     const { data } = await supabase.from("dishes")
       .insert({ event_id: event.id, household_id: household.id, name: name.trim(), price: null, allergens })
       .select().single();
-    if (data) setDishes((d) => [...d, data]);
+    if (data) setDishes((d) => [...d, { ...data, family_name: household.name }]);
     setSplitTick((t) => t + 1);
   }
   async function updateDishPrice(dishId, value) {
