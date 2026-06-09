@@ -16,16 +16,38 @@ const C = {
 const ALLERGENS = ["peanuts", "tree nuts", "dairy", "eggs", "gluten", "soy", "shellfish", "fish", "sesame"];
 const DIETS = ["vegetarian", "vegan", "halal", "kosher", "pescatarian"];
 
-export default function FamilyScreen({ onNamed }) {
+export default function FamilyScreen({ onNamed, onGoTab }) {
   const [household, setHousehold] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [saving, setSaving] = useState(false);
   const [familyName, setFamilyName] = useState("");
+  const [hasEvents, setHasEvents] = useState(true); // assume true until checked (avoids flash)
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   // load (or create) the logged-in person's household + members
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); checkHasEvents(); }, []);
+
+  async function checkHasEvents() {
+    const { data: u } = await supabase.auth.getUser();
+    const user = u?.user;
+    if (!user) return;
+    const { data: hh } = await supabase.from("households").select("id").eq("owner_id", user.id).order("created_at", { ascending: true });
+    const myHid = hh && hh[0]?.id;
+    if (!myHid) { setHasEvents(false); return; }
+    // hosting any?
+    const { count: hostCount } = await supabase.from("events").select("id", { count: "exact", head: true }).eq("host_household_id", myHid);
+    // invited to any?
+    const { count: guestCount } = await supabase.from("event_guests").select("id", { count: "exact", head: true }).eq("household_id", myHid);
+    setHasEvents((hostCount || 0) + (guestCount || 0) > 0);
+    // remember dismissal in this browser
+    setNudgeDismissed(localStorage.getItem("cy_nudge_dismissed") === "1");
+  }
+  function dismissNudge() {
+    localStorage.setItem("cy_nudge_dismissed", "1");
+    setNudgeDismissed(true);
+  }
 
   // when the household loads, prefill the family-name box
   useEffect(() => {
@@ -161,6 +183,28 @@ export default function FamilyScreen({ onNamed }) {
           {saving ? "…" : "+ Add"}
         </button>
       </div>
+
+      {/* "what's next" nudge — first-timers only: shown once family is set up,
+          gone once they have an event or they dismiss it */}
+      {familyName.trim() && members.length > 0 && !hasEvents && !nudgeDismissed && (
+        <div style={{ background: `${C.terra}0e`, border: `1px solid ${C.terra}40`, borderRadius: 18, padding: 18, marginTop: 6, position: "relative" }}>
+          <button onClick={dismissNudge} title="Dismiss"
+            style={{ position: "absolute", top: 12, right: 12, border: "none", background: "transparent", color: C.muted, cursor: "pointer", fontSize: 16, fontWeight: 700 }}>✕</button>
+          <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 900, fontSize: 19, marginBottom: 4 }}>You're all set! 🎉</div>
+          <p style={{ color: C.ink, fontSize: 13.5, margin: "0 0 14px", lineHeight: 1.5 }}>
+            What would you like to do next?
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <button onClick={() => onGoTab && onGoTab("hosting")}
+              style={{ ...btn, background: C.terra, color: "#fff", fontWeight: 700, justifyContent: "center", padding: "12px" }}>
+              🎉 Plan an event
+            </button>
+            <div style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5, textAlign: "center" }}>
+              Got an invite from a friend? Just tap the link they sent you — it'll bring you straight in.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

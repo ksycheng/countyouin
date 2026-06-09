@@ -40,6 +40,7 @@ function Logo({ size = 34 }) {
 
 export default function App() {
   const [tab, setTab] = useState("calendar");
+  const [pendingOpen, setPendingOpen] = useState(null); // event id to auto-open after switching tabs
   const [familyNamed, setFamilyNamed] = useState(true); // assume ok until checked
   const [checked, setChecked] = useState(false);
   const [cancelled, setCancelled] = useState([]); // cancelled events to notify about
@@ -175,10 +176,11 @@ export default function App() {
 
       {/* the active tab */}
       <div>
-        {tab === "calendar" && <CalendarScreen onGoTab={(t) => setTab(t)} />}
-        {tab === "family" && <FamilyScreen onNamed={checkName} />}
-        {tab === "hosting" && <EventsScreen />}
-        {tab === "invited" && <InvitedScreen />}
+        {tab === "calendar" && <CalendarScreen onGoTab={(t) => setTab(t)}
+          onOpenEvent={(role, eventId) => { setPendingOpen(eventId); setTab(role); }} />}
+        {tab === "family" && <FamilyScreen onNamed={checkName} onGoTab={(t) => setTab(t)} />}
+        {tab === "hosting" && <EventsScreen openEventId={pendingOpen} onConsumeOpen={() => setPendingOpen(null)} />}
+        {tab === "invited" && <InvitedScreen openEventId={pendingOpen} onConsumeOpen={() => setPendingOpen(null)} />}
         {tab === "friends" && <FriendsScreen />}
       </div>
     </div>
